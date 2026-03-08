@@ -75,7 +75,7 @@ The Story Behind This
 I built this because I could not find a tool that took reading as seriously as I wanted to take it.
 The problem was not motivation. The problem was structure. Reading without a curriculum is like building a house by buying materials in random order. You end up with a pile of interesting things that do not add up to anything.
 I spent time designing a proper curriculum first — three disciplines, sequenced deliberately, with books paired across tracks so the fiction illuminates the history and the philosophy illuminates both. Then I built a tool that could hold it.
-The full story is in this Medium article (link coming once published).
+The full story is in this Medium article (https://medium.com/@TheAhmadkabir/i-designed-my-own-intellectual-curriculum-at-21-955cdfce4867).
 Who This Is For
 Serious readers who want more than a list
 Anyone running or planning a multi-year reading programme
