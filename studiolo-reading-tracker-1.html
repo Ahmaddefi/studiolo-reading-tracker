@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Studiolo — Reading Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN SYSTEM — THE STUDIOLO
+   A scholar's private reading room
+   ============================================================ */
+:root {
+  --ink:        #0e0d0b;
+  --vellum:     #f5f0e8;
+  --parchment:  #e8dfc8;
+  --smoke:      #1a1814;
+  --charcoal:   #252219;
+  --ash:        #322f27;
+  --ember:      #3d3830;
+  --gold:       #c9a84c;
+  --gold-dim:   #8a6f30;
+  --gold-pale:  #e8d08a;
+  --amber:      #d4891a;
+  --rust:       #8b3a1a;
+  --sage:       #5a6b52;
+  --slate:      #4a5568;
+  --fog:        #9b9284;
+  --mist:       #6b6459;
+  --cream:      #d4c9ad;
+  --ivory:      #c2b89a;
+
+  --font-serif: 'Cormorant Garamond', 'Libre Baskerville', Georgia, serif;
+  --font-body:  'Crimson Pro', 'Libre Baskerville', Georgia, serif;
+  --font-caps:  'IM Fell English SC', 'Cormorant Garamond', serif;
+
+  --r-sm:  4px;
+  --r-md:  8px;
+  --r-lg:  12px;
+
+  --shadow-gold: 0 0 30px rgba(201,168,76,0.08);
+  --shadow-deep: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.4);
+
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background-color: var(--smoke);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(139,58,26,0.06) 0%, transparent 60%);
+}
+
+/* Grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--smoke); }
+::-webkit-scrollbar-thumb { background: var(--ash); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+.masthead {
+  padding: 48px 0 32px;
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.masthead__ornament {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  font-family: var(--font-caps);
+}
+
+.masthead__title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--vellum);
+  line-height: 1.1;
+}
+
+.masthead__title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.masthead__subtitle {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--fog);
+  letter-spacing: 0.08em;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   NAVIGATION TABS
+   ============================================================ */
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(201,168,76,0.12);
+  margin-bottom: 40px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+
+.nav-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--fog);
+  cursor: pointer;
+  font-family: var(--font-caps);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  padding: 14px 28px;
+  transition: var(--transition);
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: -1px;
+}
+
+.nav-tab:hover { color: var(--cream); }
+
+.nav-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.nav-tab .tab-count {
+  display: inline-block;
+  background: var(--ash);
+  color: var(--fog);
+  font-size: 0.6rem;
+  padding: 1px 5px;
+  border-radius: 10px;
+  margin-left: 6px;
+  font-family: var(--font-body);
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+.quote-card {
+  background: linear-gradient(135deg, var(--ash) 0%, var(--ember) 100%);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--r-lg);
+  padding: 36px 40px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-gold);
+}
+
+.quote-card::before {
+  content: '\201C';
+  position: absolute;
+  top: -20px;
+  left: 20px;
+  font-size: 8rem;
+  font-family: var(--font-serif);
+  color: rgba(201,168,76,0.08);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.quote-card__text {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--vellum);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.quote-card__author {
+  font-family: var(--font-caps);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+
+.quote-cycle-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--gold-dim);
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+.quote-cycle-btn:hover { background: rgba(201,168,76,0.2); color: var(--gold); }
+
+/* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: var(--r-md);
+  padding: 24px;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  border-color: rgba(201,168,76,0.25);
+  transform: translateY(-2px);
+}
+
+.stat-card__value {
+  font-family: var(--font-serif);
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-card__label {
+  font-family: var(--font-caps);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--fog);
+  text-transform: uppercase;
+}
+
+/* Overall progress */
+.overall-progress {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: var(--r-lg);
+  padding: 32px;
+  margin-bottom: 40px;
+}
+
+.section-label {
+  font-family: var(--font-caps);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(201,168,76,0.12);
+}
+
+.track-progress-item {
+  display: grid;
+  grid-template-columns: 160px 1fr 60px;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.track-progress-item:last-child { margin-bottom: 0; }
+
+.track-name {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--cream);
+  font-style: italic;
+}
+
+.progress-bar-track {
+  background: var(--ash);
+  border-radius: 3px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -2px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(201,168,76,0.6);
+}
+
+.progress-pct {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  color: var(--gold);
+  text-align: right;
+}
+
+/* You Are Here */
+.here-card {
+  background: linear-gradient(135deg, rgba(90,107,82,0.15) 0%, var(--charcoal) 100%);
+  border: 1px solid rgba(90,107,82,0.3);
+  border-radius: var(--r-lg);
+  padding: 28px 32px;
+  margin-bottom: 40px;
+}
+
+.here-card__tag {
+  font-family: var(--font-caps);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--sage);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.here-card__tag::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sage);
+  box-shadow: 0 0 8px var(--sage);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.here-books {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.here-book-item {
+  background: rgba(90,107,82,0.08);
+  border: 1px solid rgba(90,107,82,0.2);
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+}
+
+.here-book-item__track {
+  font-family: var(--font-caps);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--sage);
+  margin-bottom: 6px;
+}
+
+.here-book-item__title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--vellum);
+  line-height: 1.3;
+}
+
+.here-book-item__author {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--fog);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   TRACK PANELS
+   ============================================================ */
+.track-header {
+  margin-bottom: 32px;
+}
+
+.track-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 300;
+  color: var(--vellum);
+  margin-bottom: 8px;
+}
+
+.track-description {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--fog);
+  font-style: italic;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.track-progress-bar {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.track-progress-bar .progress-bar-track {
+  flex: 1;
+  height: 4px;
+}
+
+/* Stage Group */
+.stage-group {
+  margin-bottom: 48px;
+}
+
+.stage-title {
+  font-family: var(--font-caps);
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  color: var(--gold-dim);
+  padding: 8px 0 16px;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stage-count {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: var(--fog);
+  letter-spacing: 0;
+  font-style: italic;
+}
+
+/* Book Cards */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.book-card {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.08);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.book-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--ash);
+  transition: var(--transition);
+}
+
+.book-card.status-reading::before { background: var(--amber); }
+.book-card.status-finished::before { background: var(--gold); }
+
+.book-card:hover {
+  border-color: rgba(201,168,76,0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.book-card.status-finished {
+  background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, var(--charcoal) 100%);
+}
+
+.book-card__header {
+  margin-bottom: 14px;
+}
+
+.book-card__title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--vellum);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.book-card__author {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--fog);
+  font-style: italic;
+}
+
+.book-card__pairs {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--gold-dim);
+  margin-top: 6px;
+  font-style: italic;
+}
+.book-card__pairs::before { content: '⟷ '; }
+
+/* Status Toggle */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.status-btn {
+  background: var(--ash);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  color: var(--fog);
+  cursor: pointer;
+  font-family: var(--font-caps);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  padding: 5px 12px;
+  transition: var(--transition);
+}
+
+.status-btn:hover { color: var(--cream); border-color: rgba(201,168,76,0.2); }
+
+.status-btn.active[data-status="not-started"] {
+  background: var(--ash);
+  border-color: var(--fog);
+  color: var(--cream);
+}
+
+.status-btn.active[data-status="reading"] {
+  background: rgba(212,137,26,0.15);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.status-btn.active[data-status="finished"] {
+  background: rgba(201,168,76,0.15);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Star Rating */
+.star-rating {
+  display: none;
+  gap: 3px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.star-rating.visible { display: flex; }
+
+.star-rating__label {
+  font-family: var(--font-caps);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--fog);
+  margin-right: 4px;
+}
+
+.star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ash);
+  font-size: 1rem;
+  transition: var(--transition);
+  padding: 2px;
+  line-height: 1;
+}
+
+.star.filled { color: var(--gold); }
+.star:hover { transform: scale(1.2); color: var(--gold-pale); }
+
+/* Notes Field */
+.notes-area {
+  margin-top: 14px;
+}
+
+.notes-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-caps);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--mist);
+  padding: 0;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.notes-toggle:hover { color: var(--cream); }
+.notes-toggle::before { content: '✦'; font-size: 0.5rem; }
+
+.notes-field {
+  display: none;
+  margin-top: 10px;
+}
+
+.notes-field.open { display: block; }
+
+.notes-field textarea {
+  width: 100%;
+  background: var(--ash);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: var(--r-sm);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  padding: 12px;
+  resize: vertical;
+  min-height: 80px;
+  transition: var(--transition);
+  font-style: italic;
+}
+
+.notes-field textarea::placeholder { color: var(--mist); }
+.notes-field textarea:focus {
+  outline: none;
+  border-color: rgba(201,168,76,0.25);
+  background: rgba(61,56,48,0.7);
+}
+
+/* ============================================================
+   JOURNAL TAB
+   ============================================================ */
+.journal-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .journal-layout { grid-template-columns: 1fr; }
+}
+
+.journal-compose {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: var(--r-lg);
+  padding: 32px;
+}
+
+.journal-compose h3 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--vellum);
+  margin-bottom: 20px;
+}
+
+.journal-date-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.journal-date-label {
+  font-family: var(--font-caps);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--fog);
+}
+
+.journal-date-input {
+  background: var(--ash);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: var(--r-sm);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+.journal-date-input:focus {
+  outline: none;
+  border-color: rgba(201,168,76,0.35);
+}
+
+.journal-textarea {
+  width: 100%;
+  background: var(--ash);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: var(--r-md);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.8;
+  padding: 20px;
+  resize: vertical;
+  min-height: 300px;
+  transition: var(--transition);
+}
+.journal-textarea::placeholder { color: var(--mist); font-style: italic; }
+.journal-textarea:focus {
+  outline: none;
+  border-color: rgba(201,168,76,0.25);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  border: none;
+  border-radius: var(--r-md);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-caps);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  padding: 12px 28px;
+  transition: var(--transition);
+  margin-top: 16px;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-pale));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(201,168,76,0.3);
+}
+
+/* Journal Entries List */
+.journal-sidebar {
+  position: sticky;
+  top: 20px;
+}
+
+.journal-sidebar h4 {
+  font-family: var(--font-caps);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+  margin-bottom: 16px;
+}
+
+.journal-entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.journal-entry-item {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.08);
+  border-radius: var(--r-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.journal-entry-item:hover {
+  border-color: rgba(201,168,76,0.2);
+  transform: translateX(3px);
+}
+
+.journal-entry-item__date {
+  font-family: var(--font-caps);
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: var(--gold-dim);
+  margin-bottom: 6px;
+}
+
+.journal-entry-item__preview {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--fog);
+  font-style: italic;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Journal Modal / Expanded */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,9,8,0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: var(--r-lg);
+  padding: 40px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-deep);
+}
+
+.modal__close {
+  position: absolute;
+  top: 20px; right: 20px;
+  background: var(--ash);
+  border: none;
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--fog);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+.modal__close:hover { color: var(--cream); background: var(--ember); }
+
+.modal__date {
+  font-family: var(--font-caps);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+  margin-bottom: 16px;
+}
+
+.modal__body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--cream);
+  white-space: pre-wrap;
+}
+
+.modal__delete {
+  margin-top: 24px;
+  background: none;
+  border: 1px solid rgba(139,58,26,0.3);
+  border-radius: var(--r-sm);
+  color: var(--rust);
+  cursor: pointer;
+  font-family: var(--font-caps);
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  padding: 6px 14px;
+  transition: var(--transition);
+}
+.modal__delete:hover { background: rgba(139,58,26,0.15); }
+
+/* ============================================================
+   ACCOUNTABILITY VIEW
+   ============================================================ */
+.accountability-intro {
+  background: var(--charcoal);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: var(--r-lg);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--fog);
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.reading-map {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.map-track {
+  margin-bottom: 40px;
+}
+
+.map-track-title {
+  font-family: var(--font-caps);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+}
+
+.map-book-row {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.map-book-connector {
+  width: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.map-book-connector::before {
+  content: '';
+  width: 1px;
+  flex: 1;
+  background: rgba(201,168,76,0.12);
+}
+
+.map-book-row:first-child .map-book-connector::before { display: none; }
+
+.map-book-connector-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--fog);
+  background: var(--charcoal);
+  flex-shrink: 0;
+  z-index: 1;
+  margin: 4px 0;
+  transition: var(--transition);
+}
+
+.map-book-row.map-finished .map-book-connector-dot {
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 6px rgba(201,168,76,0.4);
+}
+
+.map-book-row.map-reading .map-book-connector-dot {
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 8px rgba(212,137,26,0.6);
+  animation: pulse 2s infinite;
+}
+
+.map-book-row:last-child .map-book-connector::after { display: none; }
+
+.map-book-connector::after {
+  content: '';
+  width: 1px;
+  flex: 1;
+  background: rgba(201,168,76,0.12);
+}
+
+.map-book-info {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  margin-left: 8px;
+  margin-bottom: 2px;
+  transition: var(--transition);
+}
+
+.map-book-row.map-finished .map-book-info { opacity: 0.5; }
+
+.map-book-row.map-reading .map-book-info {
+  background: rgba(212,137,26,0.08);
+  border: 1px solid rgba(212,137,26,0.2);
+}
+
+.map-book-row.map-here .map-book-info {
+  background: rgba(90,107,82,0.1);
+  border: 1px solid rgba(90,107,82,0.3);
+}
+
+.map-book-title {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.you-are-here-badge {
+  font-family: var(--font-caps);
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  background: var(--sage);
+  color: var(--ink);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.map-book-author {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--fog);
+  font-style: italic;
+}
+
+/* ============================================================
+   EMPTY STATES & HELPERS
+   ============================================================ */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--fog);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .app-wrapper { padding: 0 16px 80px; }
+  .masthead { padding: 28px 0 20px; }
+  .books-grid { grid-template-columns: 1fr; }
+  .track-progress-item { grid-template-columns: 120px 1fr 50px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .quote-card { padding: 24px 20px; }
+  .overall-progress { padding: 20px; }
+  .here-books { grid-template-columns: 1fr; }
+  .nav-tab { padding: 12px 16px; font-size: 0.7rem; }
+}
+
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .track-progress-item { grid-template-columns: 1fr; gap: 6px; }
+  .track-progress-item .track-name { font-size: 0.75rem; }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel.active { animation: fadeInUp 0.4s ease-out; }
+
+.book-card { animation: fadeInUp 0.3s ease-out both; }
+.book-card:nth-child(1) { animation-delay: 0.05s; }
+.book-card:nth-child(2) { animation-delay: 0.10s; }
+.book-card:nth-child(3) { animation-delay: 0.15s; }
+.book-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* ============================================================
+   MISC UTILITY
+   ============================================================ */
+.divider {
+  height: 1px;
+  background: rgba(201,168,76,0.08);
+  margin: 40px 0;
+}
+
+.text-gold { color: var(--gold); }
+.text-fog  { color: var(--fog); }
+
+.save-flash {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ash);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--r-md);
+  color: var(--gold);
+  font-family: var(--font-caps);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  padding: 10px 24px;
+  box-shadow: var(--shadow-deep);
+  transition: transform 0.3s ease;
+  z-index: 500;
+}
+.save-flash.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="masthead__ornament">The Private Library · Est. 2025</div>
+    <h1 class="masthead__title">The <em>Studiolo</em></h1>
+    <p class="masthead__subtitle">A reading programme across history, philosophy, literature & the western canon</p>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-panel="dashboard">Dashboard</button>
+    <button class="nav-tab" data-panel="african-history">African History <span class="tab-count" id="ah-count">0</span></button>
+    <button class="nav-tab" data-panel="philosophy">Philosophy <span class="tab-count" id="ph-count">0</span></button>
+    <button class="nav-tab" data-panel="literature">Literature & Canon <span class="tab-count" id="lt-count">0</span></button>
+    <button class="nav-tab" data-panel="journal">Journal</button>
+    <button class="nav-tab" data-panel="accountability">Map</button>
+  </nav>
+
+  <!-- ==================== DASHBOARD ==================== -->
+  <section class="panel active" id="panel-dashboard">
+
+    <div class="quote-card">
+      <p class="quote-card__text" id="quote-text"></p>
+      <p class="quote-card__author" id="quote-author"></p>
+      <button class="quote-cycle-btn" onclick="nextQuote()" title="Next quote">↻</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card__value" id="stat-total-pct">0%</div>
+        <div class="stat-card__label">Overall Complete</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value" id="stat-finished">0</div>
+        <div class="stat-card__label">Books Finished</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value" id="stat-reading">0</div>
+        <div class="stat-card__label">Currently Reading</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value" id="stat-streak">0</div>
+        <div class="stat-card__label">Day Streak</div>
+      </div>
+    </div>
+
+    <div class="overall-progress">
+      <div class="section-label">Progress by Track</div>
+      <div class="track-progress-item">
+        <span class="track-name">African History</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="db-bar-ah" style="width:0%"></div></div>
+        <span class="progress-pct" id="db-pct-ah">0%</span>
+      </div>
+      <div class="track-progress-item">
+        <span class="track-name">Western Philosophy</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="db-bar-ph" style="width:0%"></div></div>
+        <span class="progress-pct" id="db-pct-ph">0%</span>
+      </div>
+      <div class="track-progress-item">
+        <span class="track-name">Literature & Canon</span>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="db-bar-lt" style="width:0%"></div></div>
+        <span class="progress-pct" id="db-pct-lt">0%</span>
+      </div>
+    </div>
+
+    <div class="here-card">
+      <div class="here-card__tag">You Are Here</div>
+      <p style="font-family:var(--font-body);font-size:0.85rem;color:var(--fog);font-style:italic;">The next books awaiting your attention across each track:</p>
+      <div class="here-books" id="here-books-container"></div>
+    </div>
+
+  </section>
+
+  <!-- ==================== AFRICAN HISTORY ==================== -->
+  <section class="panel" id="panel-african-history">
+    <div class="track-header">
+      <h2 class="track-title">African History</h2>
+      <p class="track-description">From the deep roots of humanity's oldest civilisations through colonialism and into the complex postcolonial present.</p>
+      <div class="track-progress-bar">
+        <div class="progress-bar-track" style="flex:1"><div class="progress-bar-fill" id="bar-ah" style="width:0%"></div></div>
+        <span class="progress-pct" id="pct-ah">0%</span>
+      </div>
+    </div>
+    <div id="track-ah-stages"></div>
+  </section>
+
+  <!-- ==================== PHILOSOPHY ==================== -->
+  <section class="panel" id="panel-philosophy">
+    <div class="track-header">
+      <h2 class="track-title">Western Philosophy</h2>
+      <p class="track-description">A structured journey from the Athenian agora to the existential reckonings of the twentieth century.</p>
+      <div class="track-progress-bar">
+        <div class="progress-bar-track" style="flex:1"><div class="progress-bar-fill" id="bar-ph" style="width:0%"></div></div>
+        <span class="progress-pct" id="pct-ph">0%</span>
+      </div>
+    </div>
+    <div id="track-ph-stages"></div>
+  </section>
+
+  <!-- ==================== LITERATURE ==================== -->
+  <section class="panel" id="panel-literature">
+    <div class="track-header">
+      <h2 class="track-title">Literature & The Western Canon</h2>
+      <p class="track-description">From Homer and Sophocles to Toni Morrison and Cormac McCarthy — fiction, drama, and essays in full. Organised first by your Africa programme pairings, then through the complete arc of Western literature from antiquity to the present day, including the essential critical and philosophical essays for a fully rounded literary education.</p>
+      <div class="track-progress-bar">
+        <div class="progress-bar-track" style="flex:1"><div class="progress-bar-fill" id="bar-lt" style="width:0%"></div></div>
+        <span class="progress-pct" id="pct-lt">0%</span>
+      </div>
+    </div>
+    <div id="track-lt-stages"></div>
+  </section>
+
+  <!-- ==================== JOURNAL ==================== -->
+  <section class="panel" id="panel-journal">
+    <div class="journal-layout">
+      <div class="journal-compose">
+        <h3>Reading Journal</h3>
+        <div class="journal-date-row">
+          <span class="journal-date-label">Date</span>
+          <input type="date" class="journal-date-input" id="journal-date">
+        </div>
+        <textarea class="journal-textarea" id="journal-text" placeholder="Record your thoughts, reactions, questions... A reading journal is the private conversation between you and your books."></textarea>
+        <button class="btn-primary" onclick="saveJournalEntry()">Inscribe Entry</button>
+      </div>
+      <div class="journal-sidebar">
+        <h4>Past Entries</h4>
+        <div class="journal-entries-list" id="journal-entries-list">
+          <div class="empty-state">No entries yet.<br>Begin writing.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== ACCOUNTABILITY ==================== -->
+  <section class="panel" id="panel-accountability">
+    <div class="accountability-intro">
+      A map of your entire programme — finished books recede into shadow, your current position glows, and the unread road stretches ahead. The question this page asks is simple: <em>what have you done, and what remains?</em>
+    </div>
+    <div class="reading-map" id="accountability-map"></div>
+  </section>
+
+</div><!-- /app-wrapper -->
+
+<!-- JOURNAL MODAL -->
+<div class="modal-overlay" id="journal-modal">
+  <div class="modal">
+    <button class="modal__close" onclick="closeModal()">✕</button>
+    <div class="modal__date" id="modal-entry-date"></div>
+    <div class="modal__body" id="modal-entry-body"></div>
+    <button class="modal__delete" id="modal-delete-btn" onclick="deleteJournalEntry()">Delete Entry</button>
+  </div>
+</div>
+
+<!-- SAVE TOAST -->
+<div class="save-flash" id="save-flash">Saved to your library</div>
+
+<script>
+/* ============================================================
+   DATA — ALL BOOKS
+   ============================================================ */
+const BOOKS = {
+  "african-history": [
+    {
+      stage: "The Foundation",
+      books: [
+        { id: "ah01", title: "An African History of Africa", author: "Zeinab Badawi", pairs: null },
+        { id: "ah02", title: "Africa: A Biography of the Continent", author: "John Reader", pairs: null },
+        { id: "ah03", title: "Born in Africa", author: "Martin Meredith", pairs: null },
+      ]
+    },
+    {
+      stage: "Pre-Colonial West Africa",
+      books: [
+        { id: "ah04", title: "West Africa Before the Colonial Era", author: "Basil Davidson", pairs: null },
+        { id: "ah05", title: "African Dominion", author: "Michael Gomez", pairs: null },
+        { id: "ah06", title: "Sundiata: An Epic of Old Mali", author: "D.T. Niane", pairs: "Pairs with Classic Literature" },
+        { id: "ah07", title: "Captives and Companions", author: "Justin Marozzi", pairs: null },
+      ]
+    },
+    {
+      stage: "The Slave Trade",
+      books: [
+        { id: "ah08", title: "A Fistful of Shells", author: "Toby Green", pairs: null },
+        { id: "ah09", title: "The Slave Trade", author: "Hugh Thomas", pairs: null },
+        { id: "ah10", title: "Born in Blackness", author: "Howard W. French", pairs: null },
+      ]
+    },
+    {
+      stage: "Colonialism",
+      books: [
+        { id: "ah11", title: "Guns, Germs and Steel", author: "Jared Diamond", pairs: null },
+        { id: "ah12", title: "The Scramble for Africa", author: "Thomas Pakenham", pairs: "Pairs with Heart of Darkness" },
+        { id: "ah13", title: "Diamonds, Gold and War", author: "Martin Meredith", pairs: null },
+        { id: "ah14", title: "Fortunes of Africa", author: "Martin Meredith", pairs: null },
+        { id: "ah15", title: "King Leopold's Ghost", author: "Adam Hochschild", pairs: "Pairs with Heart of Darkness" },
+      ]
+    },
+    {
+      stage: "Colonialism Through African Eyes",
+      books: [
+        { id: "ah16", title: "Things Fall Apart", author: "Chinua Achebe", pairs: "Pairs with Classic Literature" },
+        { id: "ah17", title: "Decolonising the Mind", author: "Ngũgĩ wa Thiong'o", pairs: null },
+        { id: "ah18", title: "The Wretched of the Earth", author: "Frantz Fanon", pairs: null },
+        { id: "ah19", title: "Black Skin, White Masks", author: "Frantz Fanon", pairs: null },
+      ]
+    },
+    {
+      stage: "Post-Colonial",
+      books: [
+        { id: "ah20", title: "The Fate of Africa", author: "Martin Meredith", pairs: null },
+        { id: "ah21", title: "Dead Aid", author: "Dambisa Moyo", pairs: null },
+        { id: "ah22", title: "Why Nations Fail", author: "Daron Acemoglu & James Robinson", pairs: null },
+        { id: "ah23", title: "Decolonial Marxism", author: "Walter Rodney", pairs: null },
+        { id: "ah24", title: "How the West Was Lost", author: "Dambisa Moyo", pairs: null },
+        { id: "ah25", title: "Edge of Chaos", author: "Ruchir Sharma", pairs: null },
+        { id: "ah26", title: "Africa is Not a Country", author: "Dipo Faloyin", pairs: null },
+      ]
+    },
+  ],
+
+  "philosophy": [
+    {
+      stage: "The Map First",
+      books: [
+        { id: "ph01", title: "Sophie's World", author: "Jostein Gaarder", pairs: null },
+        { id: "ph02", title: "A Little History of Philosophy", author: "Nigel Warburton", pairs: null },
+        { id: "ph03", title: "The Story of Philosophy", author: "Will Durant", pairs: null },
+      ]
+    },
+    {
+      stage: "The Grand Surveys",
+      books: [
+        { id: "ph04", title: "A History of Western Philosophy", author: "Bertrand Russell", pairs: null },
+      ]
+    },
+    {
+      stage: "The Originals",
+      books: [
+        { id: "ph05", title: "Apology", author: "Plato", pairs: null },
+        { id: "ph06", title: "The Republic", author: "Plato", pairs: null },
+        { id: "ph07", title: "Nicomachean Ethics", author: "Aristotle", pairs: null },
+        { id: "ph08", title: "Meditations on First Philosophy", author: "René Descartes", pairs: null },
+        { id: "ph09", title: "An Enquiry Concerning Human Understanding", author: "David Hume", pairs: null },
+        { id: "ph10", title: "Groundwork for the Metaphysics of Morals", author: "Immanuel Kant", pairs: null },
+        { id: "ph11", title: "On Liberty", author: "John Stuart Mill", pairs: null },
+        { id: "ph12", title: "Utilitarianism", author: "John Stuart Mill", pairs: null },
+        { id: "ph13", title: "Beyond Good and Evil", author: "Friedrich Nietzsche", pairs: "Pairs with Notes from Underground" },
+      ]
+    },
+    {
+      stage: "The 20th Century",
+      books: [
+        { id: "ph14", title: "The Myth of Sisyphus", author: "Albert Camus", pairs: "Pairs with The Stranger" },
+        { id: "ph15", title: "The Second Sex", author: "Simone de Beauvoir", pairs: null },
+        { id: "ph16", title: "The Origins of Totalitarianism", author: "Hannah Arendt", pairs: "Pairs with 1984" },
+      ]
+    },
+  ],
+
+  "literature": [
+    {
+      stage: "With Pre-Colonial Africa",
+      books: [
+        { id: "lt01", title: "Sundiata: An Epic of Old Mali", author: "D.T. Niane", pairs: "Pairs with Pre-Colonial West Africa stage" },
+        { id: "lt02", title: "Things Fall Apart", author: "Chinua Achebe", pairs: "Pairs with Colonialism Through African Eyes" },
+      ]
+    },
+    {
+      stage: "With Colonialism",
+      books: [
+        { id: "lt03", title: "Heart of Darkness", author: "Joseph Conrad", pairs: "Pairs with King Leopold's Ghost & The Scramble for Africa" },
+        { id: "lt04", title: "The Grass is Singing", author: "Doris Lessing", pairs: "Pairs with Colonialism stage" },
+        { id: "lt05", title: "Arrow of God", author: "Chinua Achebe", pairs: "Pairs with Things Fall Apart" },
+      ]
+    },
+    {
+      stage: "With Post-Colonial Africa",
+      books: [
+        { id: "lt06", title: "Half of a Yellow Sun", author: "Chimamanda Ngozi Adichie", pairs: "Pairs with The Fate of Africa" },
+        { id: "lt07", title: "A Grain of Wheat", author: "Ngũgĩ wa Thiong'o", pairs: "Pairs with Post-Colonial stage" },
+        { id: "lt08", title: "Petals of Blood", author: "Ngũgĩ wa Thiong'o", pairs: null },
+        { id: "lt09", title: "Wizard of the Crow", author: "Ngũgĩ wa Thiong'o", pairs: null },
+      ]
+    },
+    {
+      stage: "With Philosophy",
+      books: [
+        { id: "lt10", title: "Crime and Punishment", author: "Fyodor Dostoyevsky", pairs: "Pairs with Ethics & The Originals" },
+        { id: "lt11", title: "The Trial", author: "Franz Kafka", pairs: "Pairs with 20th Century Philosophy" },
+        { id: "lt12", title: "The Stranger", author: "Albert Camus", pairs: "Pairs with The Myth of Sisyphus" },
+        { id: "lt13", title: "1984", author: "George Orwell", pairs: "Pairs with The Origins of Totalitarianism" },
+        { id: "lt14", title: "Notes from Underground", author: "Fyodor Dostoyevsky", pairs: "Pairs with Beyond Good and Evil" },
+      ]
+    },
+    {
+      stage: "Canon — Ancient Greek & Roman",
+      books: [
+        { id: "wc01", title: "The Iliad", author: "Homer", pairs: "Begin here — the ur-text of Western literature" },
+        { id: "wc02", title: "The Odyssey", author: "Homer", pairs: "Pairs with The Iliad" },
+        { id: "wc03", title: "Oedipus Rex", author: "Sophocles", pairs: "Pairs with Nicomachean Ethics" },
+        { id: "wc04", title: "Antigone", author: "Sophocles", pairs: "Pairs with On Liberty" },
+        { id: "wc05", title: "The Oresteia", author: "Aeschylus", pairs: null },
+        { id: "wc06", title: "The Symposium", author: "Plato", pairs: "Pairs with The Republic" },
+        { id: "wc07", title: "Medea", author: "Euripides", pairs: null },
+        { id: "wc08", title: "The Aeneid", author: "Virgil", pairs: "Pairs with The Odyssey" },
+        { id: "wc09", title: "Metamorphoses", author: "Ovid", pairs: null },
+        { id: "wc10", title: "Meditations", author: "Marcus Aurelius", pairs: "Pairs with Nicomachean Ethics" },
+      ]
+    },
+    {
+      stage: "Canon — Renaissance & Early Modern",
+      books: [
+        { id: "wc11", title: "The Divine Comedy", author: "Dante Alighieri", pairs: null },
+        { id: "wc12", title: "Essays", author: "Michel de Montaigne", pairs: "The father of the personal essay" },
+        { id: "wc13", title: "Don Quixote", author: "Miguel de Cervantes", pairs: "Pairs with The Trial" },
+        { id: "wc14", title: "Hamlet", author: "William Shakespeare", pairs: "Pairs with Meditations on First Philosophy" },
+        { id: "wc15", title: "King Lear", author: "William Shakespeare", pairs: null },
+        { id: "wc16", title: "Macbeth", author: "William Shakespeare", pairs: null },
+        { id: "wc17", title: "The Tempest", author: "William Shakespeare", pairs: "Pairs with The Wretched of the Earth" },
+        { id: "wc18", title: "Paradise Lost", author: "John Milton", pairs: null },
+        { id: "wc19", title: "The Prince", author: "Niccolò Machiavelli", pairs: "Pairs with The Republic" },
+      ]
+    },
+    {
+      stage: "Canon — 18th & 19th Century Novels",
+      books: [
+        { id: "wc20", title: "Tom Jones", author: "Henry Fielding", pairs: null },
+        { id: "wc21", title: "Pride and Prejudice", author: "Jane Austen", pairs: null },
+        { id: "wc22", title: "Emma", author: "Jane Austen", pairs: null },
+        { id: "wc23", title: "The Red and the Black", author: "Stendhal", pairs: null },
+        { id: "wc24", title: "Père Goriot", author: "Honoré de Balzac", pairs: null },
+        { id: "wc25", title: "Madame Bovary", author: "Gustave Flaubert", pairs: "Pairs with The Second Sex" },
+        { id: "wc26", title: "Great Expectations", author: "Charles Dickens", pairs: null },
+        { id: "wc27", title: "Moby-Dick", author: "Herman Melville", pairs: null },
+        { id: "wc28", title: "Anna Karenina", author: "Leo Tolstoy", pairs: "Pairs with Groundwork for the Metaphysics of Morals" },
+        { id: "wc29", title: "War and Peace", author: "Leo Tolstoy", pairs: null },
+        { id: "wc30", title: "The Brothers Karamazov", author: "Fyodor Dostoyevsky", pairs: "Pairs with Beyond Good and Evil" },
+        { id: "wc31", title: "Middlemarch", author: "George Eliot", pairs: "Pairs with Utilitarianism" },
+        { id: "wc32", title: "Adventures of Huckleberry Finn", author: "Mark Twain", pairs: null },
+        { id: "wc33", title: "The Portrait of a Lady", author: "Henry James", pairs: null },
+      ]
+    },
+    {
+      stage: "Canon — 20th Century Modernism",
+      books: [
+        { id: "wc34", title: "The Magic Mountain", author: "Thomas Mann", pairs: null },
+        { id: "wc35", title: "In Search of Lost Time", author: "Marcel Proust", pairs: "A life's work — begin, even if you cannot finish" },
+        { id: "wc36", title: "Ulysses", author: "James Joyce", pairs: "Pairs with The Odyssey" },
+        { id: "wc37", title: "Mrs Dalloway", author: "Virginia Woolf", pairs: null },
+        { id: "wc38", title: "To the Lighthouse", author: "Virginia Woolf", pairs: null },
+        { id: "wc39", title: "The Sound and the Fury", author: "William Faulkner", pairs: null },
+        { id: "wc40", title: "The Castle", author: "Franz Kafka", pairs: "Pairs with The Trial" },
+        { id: "wc41", title: "Brave New World", author: "Aldous Huxley", pairs: "Pairs with 1984" },
+        { id: "wc42", title: "As I Lay Dying", author: "William Faulkner", pairs: null },
+        { id: "wc43", title: "Ficciones", author: "Jorge Luis Borges", pairs: null },
+        { id: "wc44", title: "Invisible Man", author: "Ralph Ellison", pairs: "Pairs with Black Skin, White Masks" },
+        { id: "wc45", title: "One Hundred Years of Solitude", author: "Gabriel García Márquez", pairs: null },
+        { id: "wc46", title: "Beloved", author: "Toni Morrison", pairs: "Pairs with The Slave Trade stage" },
+        { id: "wc47", title: "Lolita", author: "Vladimir Nabokov", pairs: null },
+        { id: "wc48", title: "Blood Meridian", author: "Cormac McCarthy", pairs: null },
+      ]
+    },
+    {
+      stage: "Essays — Personal & Moral",
+      books: [
+        { id: "wc49", title: "How to Read a Book", author: "Mortimer Adler & Charles Van Doren", pairs: "Read this before anything else" },
+        { id: "wc50", title: "Self-Reliance and Other Essays", author: "Ralph Waldo Emerson", pairs: "Pairs with On Liberty" },
+        { id: "wc51", title: "Walden", author: "Henry David Thoreau", pairs: "Pairs with Utilitarianism" },
+        { id: "wc52", title: "The Fire Next Time", author: "James Baldwin", pairs: "Pairs with Black Skin, White Masks" },
+        { id: "wc53", title: "Notes of a Native Son", author: "James Baldwin", pairs: "Pairs with The Wretched of the Earth" },
+        { id: "wc54", title: "A Room of One's Own", author: "Virginia Woolf", pairs: "Pairs with The Second Sex" },
+        { id: "wc55", title: "Speak, Memory", author: "Vladimir Nabokov", pairs: null },
+        { id: "wc56", title: "Consider the Lobster", author: "David Foster Wallace", pairs: null },
+        { id: "wc57", title: "Against Interpretation", author: "Susan Sontag", pairs: null },
+        { id: "wc58", title: "Illness as Metaphor", author: "Susan Sontag", pairs: null },
+      ]
+    },
+    {
+      stage: "Essays — Political & Philosophical",
+      books: [
+        { id: "wc59", title: "Civil Disobedience", author: "Henry David Thoreau", pairs: "Pairs with On Liberty" },
+        { id: "wc60", title: "The Social Contract", author: "Jean-Jacques Rousseau", pairs: "Pairs with A History of Western Philosophy" },
+        { id: "wc61", title: "Common Sense", author: "Thomas Paine", pairs: null },
+        { id: "wc62", title: "The Federalist Papers", author: "Hamilton, Madison & Jay", pairs: "Pairs with Why Nations Fail" },
+        { id: "wc63", title: "Reflections on the Revolution in France", author: "Edmund Burke", pairs: "Pairs with On Liberty" },
+        { id: "wc64", title: "The Communist Manifesto", author: "Marx & Engels", pairs: "Pairs with The Origins of Totalitarianism" },
+        { id: "wc65", title: "Politics and the English Language", author: "George Orwell", pairs: "Pairs with 1984" },
+        { id: "wc66", title: "Men in Dark Times", author: "Hannah Arendt", pairs: "Pairs with The Origins of Totalitarianism" },
+      ]
+    },
+    {
+      stage: "Essays — Literary Criticism & Theory",
+      books: [
+        { id: "wc67", title: "The Western Canon", author: "Harold Bloom", pairs: "A map of everything in this track" },
+        { id: "wc68", title: "Orientalism", author: "Edward Said", pairs: "Pairs with Colonialism Through African Eyes" },
+        { id: "wc69", title: "The Anxiety of Influence", author: "Harold Bloom", pairs: null },
+        { id: "wc70", title: "Mimesis", author: "Erich Auerbach", pairs: "Pairs with The Iliad & The Odyssey" },
+        { id: "wc71", title: "The Death of the Author", author: "Roland Barthes", pairs: null },
+        { id: "wc72", title: "Discipline and Punish", author: "Michel Foucault", pairs: "Pairs with The Origins of Totalitarianism" },
+        { id: "wc73", title: "Ways of Seeing", author: "John Berger", pairs: null },
+        { id: "wc74", title: "How Fiction Works", author: "James Wood", pairs: "Pairs with The Western Canon" },
+      ]
+    },
+  ],
+};
+
+const QUOTES = [
+  { text: "Until the lion learns to write, every story will glorify the hunter.", author: "Chinua Achebe" },
+  { text: "The function of freedom is to free someone else.", author: "Toni Morrison" },
+  { text: "I am not tragically colored. There is no great sorrow dammed up in my soul.", author: "Zora Neale Hurston" },
+  { text: "We know what we are but know not what we may be.", author: "William Shakespeare" },
+  { text: "The unexamined life is not worth living.", author: "Socrates" },
+  { text: "The struggle of man against power is the struggle of memory against forgetting.", author: "Milan Kundera" },
+  { text: "I am not free while any woman is unfree, even when her shackles are very different from my own.", author: "Audre Lorde" },
+  { text: "One must imagine Sisyphus happy.", author: "Albert Camus" },
+  { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+  { text: "The most courageous act is still to think for yourself. Aloud.", author: "Coco Chanel" },
+  { text: "To read a writer is for me not merely to get an idea of what he says, but to go off with him, and travel in his company.", author: "André Gide" },
+  { text: "God is dead. God remains dead. And we have killed him.", author: "Friedrich Nietzsche" },
+  { text: "If you want to go fast, go alone. If you want to go far, go together.", author: "African Proverb" },
+  { text: "We were enslaved not because we were inferior but because we were colonized.", author: "Walter Rodney" },
+  { text: "Totalitarianism is not only hell, but all the dream of paradise.", author: "Hannah Arendt" },
+  { text: "Colonialism is not a thinking machine, nor a body endowed with reasoning faculties.", author: "Frantz Fanon" },
+  { text: "The world is a book, and those who do not travel read only one page.", author: "Saint Augustine" },
+  { text: "To know who you are, you must know where you come from.", author: "Ngugi wa Thiong'o" },
+  { text: "Not all those who wander are lost.", author: "J.R.R. Tolkien" },
+  { text: "Call me Ishmael.", author: "Herman Melville" },
+  { text: "It was the best of times, it was the worst of times.", author: "Charles Dickens" },
+  { text: "A writer only begins a book. A reader finishes it.", author: "Samuel Johnson" },
+  { text: "All happy families are alike; each unhappy family is unhappy in its own way.", author: "Leo Tolstoy" },
+  { text: "I took a deep breath and listened to the old brag of my heart: I am, I am, I am.", author: "Sylvia Plath" },
+  { text: "Literature is the most agreeable way of ignoring life.", author: "Fernando Pessoa" },
+  { text: "There is no friend as loyal as a book.", author: "Ernest Hemingway" },
+  { text: "In the beginning was the Word.", author: "The Gospel of John" },
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let state = {
+  books: {},       // id -> { status, rating, notes }
+  journal: [],     // [{ id, date, text }]
+  streak: { lastDate: null, count: 0 },
+  quoteIndex: 0,
+};
+
+let currentModalEntryId = null;
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('studiolo_v2');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = { ...state, ...parsed };
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  localStorage.setItem('studiolo_v2', JSON.stringify(state));
+  showSaveFlash();
+}
+
+function getBook(id) {
+  if (!state.books[id]) state.books[id] = { status: 'not-started', rating: 0, notes: '' };
+  return state.books[id];
+}
+
+/* ============================================================
+   STREAK
+   ============================================================ */
+function checkStreak() {
+  const today = new Date().toISOString().split('T')[0];
+  const s = state.streak;
+  if (!s.lastDate) return;
+  const last = new Date(s.lastDate);
+  const now = new Date(today);
+  const diff = Math.round((now - last) / 86400000);
+  if (diff > 1) { state.streak.count = 0; state.streak.lastDate = null; }
+}
+
+function markReadToday() {
+  const today = new Date().toISOString().split('T')[0];
+  const s = state.streak;
+  if (s.lastDate === today) return;
+  const last = s.lastDate ? new Date(s.lastDate) : null;
+  const now = new Date(today);
+  const diff = last ? Math.round((now - last) / 86400000) : null;
+  if (diff === 1) { s.count++; }
+  else if (diff === null || diff > 1) { s.count = 1; }
+  s.lastDate = today;
+  saveState();
+}
+
+/* ============================================================
+   QUOTE
+   ============================================================ */
+function nextQuote() {
+  state.quoteIndex = (state.quoteIndex + 1) % QUOTES.length;
+  renderQuote();
+  saveState();
+}
+
+function renderQuote() {
+  const q = QUOTES[state.quoteIndex % QUOTES.length];
+  document.getElementById('quote-text').textContent = q.text;
+  document.getElementById('quote-author').textContent = '— ' + q.author;
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function getTrackStats(trackKey) {
+  const stages = BOOKS[trackKey];
+  let total = 0, finished = 0, reading = 0;
+  stages.forEach(s => {
+    s.books.forEach(b => {
+      total++;
+      const st = getBook(b.id).status;
+      if (st === 'finished') finished++;
+      if (st === 'reading') reading++;
+    });
+  });
+  return { total, finished, reading };
+}
+
+function getAllStats() {
+  const tracks = ['african-history', 'philosophy', 'literature'];
+  let total = 0, finished = 0, reading = 0;
+  tracks.forEach(t => {
+    const s = getTrackStats(t);
+    total += s.total; finished += s.finished; reading += s.reading;
+  });
+  return { total, finished, reading };
+}
+
+function pct(n, d) { return d === 0 ? 0 : Math.round((n / d) * 100); }
+
+function renderDashboard() {
+  renderQuote();
+
+  const all = getAllStats();
+  const p = pct(all.finished, all.total);
+  document.getElementById('stat-total-pct').textContent = p + '%';
+  document.getElementById('stat-finished').textContent = all.finished;
+  document.getElementById('stat-reading').textContent = all.reading;
+  document.getElementById('stat-streak').textContent = state.streak.count || 0;
+
+  const ah = getTrackStats('african-history');
+  const ph = getTrackStats('philosophy');
+  const lt = getTrackStats('literature');
+
+  const setPct = (barId, pctId, n, d) => {
+    const p = pct(n, d);
+    document.getElementById(barId).style.width = p + '%';
+    document.getElementById(pctId).textContent = p + '%';
+  };
+  setPct('db-bar-ah','db-pct-ah', ah.finished, ah.total);
+  setPct('db-bar-ph','db-pct-ph', ph.finished, ph.total);
+  setPct('db-bar-lt','db-pct-lt', lt.finished, lt.total);
+
+  // Tab counts
+  document.getElementById('ah-count').textContent = `${ah.finished}/${ah.total}`;
+  document.getElementById('ph-count').textContent = `${ph.finished}/${ph.total}`;
+  document.getElementById('lt-count').textContent = `${lt.finished}/${lt.total}`;
+
+  // HERE
+  renderHereCards();
+}
+
+function renderHereCards() {
+  const container = document.getElementById('here-books-container');
+  container.innerHTML = '';
+  const tracks = [
+    { key: 'african-history', label: 'African History' },
+    { key: 'philosophy', label: 'Philosophy' },
+    { key: 'literature', label: 'Literature & Canon' },
+  ];
+  tracks.forEach(({ key, label }) => {
+    const next = getNextBook(key);
+    if (!next) return;
+    const div = document.createElement('div');
+    div.className = 'here-book-item';
+    div.innerHTML = `
+      <div class="here-book-item__track">${label}</div>
+      <div class="here-book-item__title">${next.title}</div>
+      <div class="here-book-item__author">${next.author}</div>
+    `;
+    container.appendChild(div);
+  });
+
+  if (!container.children.length) {
+    container.innerHTML = '<p style="font-family:var(--font-body);font-size:0.9rem;color:var(--fog);font-style:italic;padding:16px 0;">All tracks are complete. An extraordinary achievement.</p>';
+  }
+}
+
+function getNextBook(trackKey) {
+  for (const stage of BOOKS[trackKey]) {
+    for (const book of stage.books) {
+      const st = getBook(book.id).status;
+      if (st === 'reading') return book;
+      if (st === 'not-started') return book;
+    }
+  }
+  return null;
+}
+
+/* ============================================================
+   RENDER TRACK
+   ============================================================ */
+function renderTrack(trackKey, containerId, barId, pctId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const stages = BOOKS[trackKey];
+  let total = 0, finished = 0;
+
+  stages.forEach(stage => {
+    const group = document.createElement('div');
+    group.className = 'stage-group';
+
+    const stageHeader = document.createElement('div');
+    stageHeader.className = 'stage-title';
+    stageHeader.innerHTML = `${stage.stage} <span class="stage-count">${stage.books.length} books</span>`;
+    group.appendChild(stageHeader);
+
+    const grid = document.createElement('div');
+    grid.className = 'books-grid';
+
+    stage.books.forEach(book => {
+      total++;
+      const bState = getBook(book.id);
+      if (bState.status === 'finished') finished++;
+      grid.appendChild(renderBookCard(book, bState));
+    });
+
+    group.appendChild(grid);
+    container.appendChild(group);
+  });
+
+  const p = pct(finished, total);
+  document.getElementById(barId).style.width = p + '%';
+  document.getElementById(pctId).textContent = p + '%';
+}
+
+function renderBookCard(book, bState) {
+  const card = document.createElement('div');
+  card.className = `book-card status-${bState.status}`;
+  card.id = `card-${book.id}`;
+
+  card.innerHTML = `
+    <div class="book-card__header">
+      <div class="book-card__title">${book.title}</div>
+      <div class="book-card__author">${book.author}</div>
+      ${book.pairs ? `<div class="book-card__pairs">${book.pairs}</div>` : ''}
+    </div>
+    <div class="status-row">
+      <button class="status-btn ${bState.status === 'not-started' ? 'active' : ''}" data-id="${book.id}" data-status="not-started">Not Started</button>
+      <button class="status-btn ${bState.status === 'reading' ? 'active' : ''}" data-id="${book.id}" data-status="reading">Reading</button>
+      <button class="status-btn ${bState.status === 'finished' ? 'active' : ''}" data-id="${book.id}" data-status="finished">Finished</button>
+    </div>
+    <div class="star-rating ${bState.status === 'finished' ? 'visible' : ''}" id="stars-${book.id}">
+      <span class="star-rating__label">Rating</span>
+      ${[1,2,3,4,5].map(n => `<button class="star ${bState.rating >= n ? 'filled' : ''}" data-id="${book.id}" data-star="${n}">★</button>`).join('')}
+    </div>
+    <div class="notes-area">
+      <button class="notes-toggle" onclick="toggleNotes('${book.id}')">${bState.notes ? 'View Notes' : 'Add Notes'}</button>
+      <div class="notes-field ${bState.notes ? 'open' : ''}" id="notes-field-${book.id}">
+        <textarea placeholder="Your thoughts, reactions, quotes to remember…" 
+          oninput="saveNotes('${book.id}', this.value)"
+          id="notes-ta-${book.id}"
+        >${bState.notes || ''}</textarea>
+      </div>
+    </div>
+  `;
+
+  // Status buttons
+  card.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const status = btn.dataset.status;
+      setStatus(id, status);
+    });
+  });
+
+  // Stars
+  card.querySelectorAll('.star').forEach(star => {
+    star.addEventListener('click', () => {
+      const id = star.dataset.id;
+      const rating = parseInt(star.dataset.star);
+      setRating(id, rating);
+    });
+  });
+
+  return card;
+}
+
+function setStatus(id, status) {
+  const b = getBook(id);
+  b.status = status;
+  if (status === 'reading') markReadToday();
+  saveState();
+  refreshAll();
+}
+
+function setRating(id, rating) {
+  const b = getBook(id);
+  b.rating = rating;
+  saveState();
+
+  // Update stars visually
+  const container = document.getElementById(`stars-${id}`);
+  if (!container) return;
+  container.querySelectorAll('.star').forEach(s => {
+    s.classList.toggle('filled', parseInt(s.dataset.star) <= rating);
+  });
+}
+
+function toggleNotes(id) {
+  const field = document.getElementById(`notes-field-${id}`);
+  if (field) field.classList.toggle('open');
+}
+
+function saveNotes(id, text) {
+  const b = getBook(id);
+  b.notes = text;
+  saveState();
+}
+
+/* ============================================================
+   ACCOUNTABILITY MAP
+   ============================================================ */
+function renderAccountabilityMap() {
+  const container = document.getElementById('accountability-map');
+  container.innerHTML = '';
+
+  const tracks = [
+    { key: 'african-history', label: 'African History' },
+    { key: 'philosophy', label: 'Western Philosophy' },
+    { key: 'literature', label: 'Literature & Western Canon' },
+  ];
+
+  tracks.forEach(({ key, label }) => {
+    const mapTrack = document.createElement('div');
+    mapTrack.className = 'map-track';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'map-track-title';
+    titleEl.textContent = label;
+    mapTrack.appendChild(titleEl);
+
+    let foundHere = false;
+
+    BOOKS[key].forEach(stage => {
+      stage.books.forEach(book => {
+        const bState = getBook(book.id);
+        const row = document.createElement('div');
+
+        let rowClass = 'map-book-row';
+        if (bState.status === 'finished') rowClass += ' map-finished';
+        else if (bState.status === 'reading') { rowClass += ' map-reading'; }
+        else if (!foundHere) { rowClass += ' map-here'; foundHere = true; }
+
+        row.className = rowClass;
+
+        const isHere = rowClass.includes('map-here');
+        const isReading = rowClass.includes('map-reading');
+
+        row.innerHTML = `
+          <div class="map-book-connector">
+            <div class="map-book-connector-dot"></div>
+          </div>
+          <div class="map-book-info">
+            <div class="map-book-title">
+              ${book.title}
+              ${isHere ? '<span class="you-are-here-badge">You Are Here</span>' : ''}
+              ${isReading ? '<span class="you-are-here-badge" style="background:var(--amber)">Currently Reading</span>' : ''}
+            </div>
+            <div class="map-book-author">${book.author} · ${stage.stage}</div>
+          </div>
+        `;
+        mapTrack.appendChild(row);
+      });
+    });
+
+    container.appendChild(mapTrack);
+  });
+}
+
+/* ============================================================
+   JOURNAL
+   ============================================================ */
+function setTodayDate() {
+  const input = document.getElementById('journal-date');
+  if (input) input.value = new Date().toISOString().split('T')[0];
+}
+
+function saveJournalEntry() {
+  const date = document.getElementById('journal-date').value;
+  const text = document.getElementById('journal-text').value.trim();
+  if (!text) return;
+
+  const entry = {
+    id: Date.now().toString(),
+    date: date || new Date().toISOString().split('T')[0],
+    text
+  };
+
+  state.journal.unshift(entry);
+  document.getElementById('journal-text').value = '';
+  markReadToday();
+  saveState();
+  renderJournalEntries();
+  renderDashboard();
+}
+
+function renderJournalEntries() {
+  const list = document.getElementById('journal-entries-list');
+  if (!state.journal.length) {
+    list.innerHTML = '<div class="empty-state">No entries yet.<br>Begin writing.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  state.journal.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'journal-entry-item';
+    const dateLabel = formatDate(entry.date);
+    item.innerHTML = `
+      <div class="journal-entry-item__date">${dateLabel}</div>
+      <div class="journal-entry-item__preview">${escHtml(entry.text)}</div>
+    `;
+    item.addEventListener('click', () => openJournalModal(entry));
+    list.appendChild(item);
+  });
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function openJournalModal(entry) {
+  currentModalEntryId = entry.id;
+  document.getElementById('modal-entry-date').textContent = formatDate(entry.date);
+  document.getElementById('modal-entry-body').textContent = entry.text;
+  document.getElementById('journal-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('journal-modal').classList.remove('open');
+  currentModalEntryId = null;
+}
+
+function deleteJournalEntry() {
+  if (!currentModalEntryId) return;
+  state.journal = state.journal.filter(e => e.id !== currentModalEntryId);
+  saveState();
+  renderJournalEntries();
+  closeModal();
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function initTabs() {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panelId = 'panel-' + tab.dataset.panel;
+      const panel = document.getElementById(panelId);
+      if (panel) panel.classList.add('active');
+
+      // Lazy render
+      if (tab.dataset.panel === 'accountability') renderAccountabilityMap();
+      if (tab.dataset.panel === 'journal') renderJournalEntries();
+    });
+  });
+}
+
+/* ============================================================
+   SAVE FLASH
+   ============================================================ */
+let flashTimeout;
+function showSaveFlash() {
+  const el = document.getElementById('save-flash');
+  el.classList.add('show');
+  clearTimeout(flashTimeout);
+  flashTimeout = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+/* ============================================================
+   REFRESH ALL
+   ============================================================ */
+function refreshAll() {
+  renderDashboard();
+  renderTrack('african-history', 'track-ah-stages', 'bar-ah', 'pct-ah');
+  renderTrack('philosophy', 'track-ph-stages', 'bar-ph', 'pct-ph');
+  renderTrack('literature', 'track-lt-stages', 'bar-lt', 'pct-lt');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  loadState();
+  checkStreak();
+  initTabs();
+  setTodayDate();
+  refreshAll();
+  renderJournalEntries();
+
+  // Close modal on overlay click
+  document.getElementById('journal-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('journal-modal')) closeModal();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
